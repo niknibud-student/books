@@ -1,15 +1,15 @@
-from pydoc import html
+from pydoc import HTMLDoc
 from typing import NewType
-from flask import Flask, render_template, request, escape
-from vsearch import search_for_letters
 
+from flask import Flask, escape, render_template, request
+from vsearch import search_for_letters
 
 app = Flask(__name__)
 
 flask_request = NewType('flask_request', request)
 
 
-def log_request(req: 'flask_request', res: str) -> None:
+def log_request(req: 'flask_request', res: str) -> None:  # type: ignore
     """
     Запись полученных данных в файл
 
@@ -39,7 +39,7 @@ def do_search() -> str:
 
 @app.route('/')
 @app.route('/entry')
-def entry_page() -> 'html':
+def entry_page() -> 'html':  # type: ignore
     return render_template('entry.html', the_title='Welcome to search_for_letters on the web')
 
 
