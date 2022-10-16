@@ -4,21 +4,42 @@ from typing import NewType
 from flask import Flask, escape, render_template, request
 from vsearch import search_for_letters
 
+import sqlite3
+
 app = Flask(__name__)
 
-flask_request = NewType('flask_request', request)
 
-
-def log_request(req: 'flask_request', res: str) -> None:  # type: ignore
+def log_request(req: 'request', res: str) -> None:  # type: ignore
     """
-    Запись полученных данных в файл
+    Запись полученных данных в базу данных
 
     Args:
         req (request): запрос Flask
         res (str): ответ пользователю
     """
-    with open('vsearch.log', 'a') as log:
-        print(req.form, req.remote_addr, req.user_agent, res, file=log, sep='|')
+    dbconfig = {'database': 'vsearchlogdb.sqlite'}
+    
+    conn = sqlite3.connect(**dbconfig)
+    cursor = conn.cursor()
+    _SQL = """insert into log
+    (phrase, letters, ip, browser_string, results)
+    values
+    (?, ?, ?, ?, ?)"""
+    '''
+    print((req.form['phrase'],
+        req.form['letters'],
+        req.remote_addr,
+        req.user_agent.string,
+        res,))
+    '''
+    cursor.execute(_SQL, (req.form['phrase'],
+                          req.form['letters'],
+                          req.remote_addr,
+                          req.user_agent.string,
+                          res,))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 
 @app.route('/searchfor', methods=['POST'])
@@ -39,12 +60,12 @@ def do_search() -> str:
 
 @app.route('/')
 @app.route('/entry')
-def entry_page() -> 'html':  # type: ignore
+def entry_page() -> str:
     return render_template('entry.html', the_title='Welcome to search_for_letters on the web')
 
 
 @app.route('/viewlog')
-def view_the_log() -> 'html':
+def view_the_log() -> str:
     contents = []
     with open('vsearch.log') as log:
         for line in log:
