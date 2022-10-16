@@ -19,28 +19,17 @@ def log_request(req: 'request', res: str) -> None:  # type: ignore
     """
     dbconfig = {'database': 'vsearchlogdb.sqlite'}
     
-    conn = sqlite3.connect(**dbconfig)
-    cursor = conn.cursor()
-    _SQL = """insert into log
-    (phrase, letters, ip, browser_string, results)
-    values
-    (?, ?, ?, ?, ?)"""
-    '''
-    print((req.form['phrase'],
-        req.form['letters'],
-        req.remote_addr,
-        req.user_agent.string,
-        res,))
-    '''
-    cursor.execute(_SQL, (req.form['phrase'],
-                          req.form['letters'],
-                          req.remote_addr,
-                          req.user_agent.string,
-                          res,))
-    conn.commit()
-    cursor.close()
-    conn.close()
-
+    with UseDatabase(dbconfig) as cursor:        
+        _SQL = """insert into log
+        (phrase, letters, ip, browser_string, results)
+        values
+        (?, ?, ?, ?, ?)"""
+        cursor.execute(_SQL, (req.form['phrase'],
+                              req.form['letters'],
+                              req.remote_addr,
+                              req.user_agent.string,
+                              res,))
+    
 
 @app.route('/searchfor', methods=['POST'])
 def do_search() -> str:
