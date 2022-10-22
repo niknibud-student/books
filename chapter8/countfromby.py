@@ -1,8 +1,3 @@
-
-
-from logging.config import valid_ident
-
-
 class CountFromBy:
     
     def __init__(self, val: int=0, incr: int=1) -> None:

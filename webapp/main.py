@@ -1,15 +1,16 @@
+from importlib.resources import contents
 from pydoc import HTMLDoc
 from typing import NewType
 
 from flask import Flask, escape, render_template, request
 from vsearch import search_for_letters
 
-import sqlite3
+from DBcm import UseDatabase
 
 app = Flask(__name__)
+app.config['dbconfig'] = {'database': 'vsearchlogdb.sqlite'}
 
-
-def log_request(req: 'request', res: str) -> None:  # type: ignore
+def log_request(req: request, res: str) -> None:
     """
     Запись полученных данных в базу данных
 
@@ -17,9 +18,7 @@ def log_request(req: 'request', res: str) -> None:  # type: ignore
         req (request): запрос Flask
         res (str): ответ пользователю
     """
-    dbconfig = {'database': 'vsearchlogdb.sqlite'}
-    
-    with UseDatabase(dbconfig) as cursor:        
+    with UseDatabase(app.config['dbconfig']) as cursor:
         _SQL = """insert into log
         (phrase, letters, ip, browser_string, results)
         values
@@ -55,13 +54,12 @@ def entry_page() -> str:
 
 @app.route('/viewlog')
 def view_the_log() -> str:
-    contents = []
-    with open('vsearch.log') as log:
-        for line in log:
-            contents.append([])
-            for item in line.split('|'):
-                contents[-1].append(escape(item))
-    titles = ('Form Data', 'Remote_addr', 'User_agent', 'Results')
+    with UseDatabase(app.config['dbconfig']) as cursor:
+        _SQL = """select phrase, letters, ip, browser_string, results from log"""
+        cursor.execute(_SQL)
+        contents = cursor.fetchall()
+        
+    titles = ('Phrase', 'Letters', 'Remote_addr', 'User_agent', 'Results')
     return render_template(
         'viewlog.html',
         the_title='View Log',
