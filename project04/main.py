@@ -25,9 +25,9 @@ def get_bet(max_bet: int) -> int:
     """
     while True:
         """ Продолжаем спрашивать, пока не введено допустимое значение """
-        print(f'Какая ваша ставка? (1-{max_bet}, (Q) Выход)')
+        print(f'Какая ваша ставка? (1-{max_bet}, (В)ыход)')
         bet = input('> ').upper().strip()
-        if bet == 'QUIT' or bet == 'Q':
+        if bet == 'ВЫХОД' or bet == 'В':
             print('Спасибо за игру!')
             sys.exit()
             
@@ -156,20 +156,23 @@ def get_move(player_hand: list[tuple[str, str]|str], money: int) -> str:
     """
     while True:
         # Определяем какие ходы может сделать игрок
-        moves = ['(H) Ещё', '(S) Хватит']
+        moves = ['(Е)щё', '(Х)ватит']
         
         # Игрок может удвоить при первом ходе, это ясно из того, 
         # что у игрока ровно две карты
         if len(player_hand) == 2 and money > 0:
-            moves.append('(D) Удвоить')
-           
+            moves.append('(У)двоить')
+        
+        # if player_hand[0][0] == player_hand[1][0]:
+        #     moves.append('(Р)азбить')
+                  
         # Получаем ход игрока:
         move_prompt = ', '.join(moves) + '> '
         move = input(move_prompt).upper()
         
-        if move in ('H', 'S'):
+        if move in ('Е', 'Х', 'Р'):
             return move  # Игрок сделал допустимый ход
-        if move == 'D' and '(D) Удвоить' in moves:
+        if move == 'У' and '(У)двоить' in moves:
             return move  # Игрок сделал допустимый ход
 
 
@@ -181,10 +184,11 @@ def main() -> None:
         Короли, дамы и валеты стоят 10 очков.
         Тузы стоят 1 или 11 очков.
         Карты с 2 по 10 стоят своего номинала.
-        (H) Ещё - для того, чтобы взять другую карту.
-        (S) Хватит - прекратить брать карты.
-        Во время вашей первой игры вы можете (D) Удвоить ставку, чтобы увеличить ее,
+        (Е)щё - для того, чтобы взять другую карту.
+        (Х)ватит - прекратить брать карты.
+        Во время вашей первой игры вы можете (У)двоить ставку, чтобы увеличить ее,
         но можете сделать это ровно один раз, прежде чем остановиться.
+        Также можно (Р)азделить карты на две руки при первой раздаче
         В случае ничьей ставка возвращается игроку.
         Дилер прекращает брать карты если у него >= 17.
     ''')
@@ -218,14 +222,14 @@ def main() -> None:
             move = get_move(player_hand, money - bet)
             
             # Обработка действий игрока:
-            if move == 'D':
+            if move == 'У':
                 # Игрок удваивает, он может увеличить ставку:
                 addititonal_bet = get_bet(min(bet, (money - bet)))
                 bet += addititonal_bet
                 print(f'Ставка увеличена до {bet}')
                 print('Ставка:', bet)
             
-            if move in ('H', 'D'):
+            if move in ('Е', 'У'):
                 # "Ещё" или "Удваиваю": игрок берет еще одну карту:
                 new_card = deck.pop()
                 rank, suit = new_card
@@ -234,10 +238,24 @@ def main() -> None:
                 
                 if get_hand_value(player_hand) > 21:
                     # Перебор у игрока:
-                    continue
+                    continue                    
+            
+            # TODO: Реализовать разбиение на руки
+            # if move == 'Р':
+            #     player_hands = [[], []]
+            #     for card in player_hand:
+            #         player_hands[0].append(card)
+            #         player_hands[1].append(card)
                     
+            #     for player_hand in player_hands:
+            #         player_hand.append(deck.pop())
+                    
+            #         if get_hand_value(player_hand) > 21:
+            #             continue
                 
-            if move in ('S', 'D'):
+                
+            
+            if move in ('Х', 'У'):
                 # "Хватит" или "Удваиваю" - переход хода к другому игроку
                 break
         
