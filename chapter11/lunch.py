@@ -1,4 +1,4 @@
-import fast
+import fast as f
 
-place = fast.pick()
+place = f.pick()
 print('Давай сходим в', place)
