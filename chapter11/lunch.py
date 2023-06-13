@@ -1,4 +1,4 @@
-from fast import pick
+from fast import pick as who_cares
 
-place = pick()
+place = who_cares()
 print('Давай сходим в', place)
